@@ -1,4 +1,10 @@
-<title>Saved Ratios</title>
+<title>Saved Ratios · 5-minute test</title>
+<meta name="description" content="A 5-minute concept test for agency creators: make one image pack in several ratios, twice, and tell us what you think.">
+<meta property="og:title" content="Saved Ratios · 5-minute test for agency creators">
+<meta property="og:description" content="Make one image pack in several ratios, twice, and tell us what you think. No login, nothing is generated or charged.">
+<meta property="og:image" content="https://manorbirman-git.github.io/saved-ratios-prototype/og.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
@@ -136,6 +142,16 @@ textarea{width:100%;min-height:74px;resize:vertical;background:transparent;borde
 .watch small{display:block;color:var(--muted);font-size:12px}
 .verdict{font-size:13px;color:var(--ok)}
 @media (max-width:760px){.rounds{grid-template-columns:1fr}}
+dialog.wide{max-width:560px;max-height:90vh;overflow:auto}
+.intro ol{margin:0 0 14px;padding-left:18px;color:var(--text);font-size:13px;display:grid;gap:6px}
+.intro .fine{font-size:12px;color:var(--faint);margin-bottom:16px}
+.q{margin-bottom:14px}
+.q .ql{font-size:13px;font-weight:600;margin-bottom:6px;display:block}
+.q .row{margin-bottom:0}
+.q textarea{background:var(--card);border:1px solid var(--line2);border-radius:10px;min-height:64px;font:13px/1.5 var(--sans);padding:8px 10px}
+.fbsum{font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:14px}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid rgba(245,211,59,.4);border-radius:10px;padding:10px 12px;font-size:13px}
+details.guide summary{cursor:pointer;color:var(--text);font-weight:600}
 .runs{font-size:12px;color:var(--muted)}
 .runs table{border-collapse:collapse;width:100%}
 .runs td,.runs th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
@@ -201,6 +217,8 @@ button.ctl:hover{border-color:var(--faint)}
     <button id="modeOld" aria-pressed="false">Current Toolkit</button>
     <button id="modeNew" aria-pressed="true">With Saved Ratios</button>
   </div>
+  <button class="btn small" id="fbOpen">Give feedback</button>
+  <button class="btn small ghost" id="introOpen" title="How this test works">?</button>
   
 </header>
 
@@ -215,13 +233,14 @@ button.ctl:hover{border-color:var(--faint)}
   <main class="main">
     <section class="mission" id="mission" aria-label="Test mission">
       <div class="goal">Your mission: make <b>Vitariz</b> in <b>9:16 + 1:1 + 4:5</b> with <b>Nano Banana 2</b> (image mode).
-        <small>Do it twice: first in the current Toolkit, then with Saved Ratios. The clock starts when you press Start and stops by itself when all three ratios are ready.</small></div>
+        <small>Do it twice, once in each version, in the order shown. The clock starts when you press Start and stops by itself when all three ratios are ready.</small></div>
       <div class="rounds">
-        <div class="round" id="round-old"><span class="n">1</span><div><b>Current Toolkit</b><span class="r" id="res-old">Not run yet</span></div><button class="btn small" data-round="old">Start</button></div>
+        <div class="round" id="round-old"><span class="n">1</span><div><b>Current version</b><span class="r" id="res-old">Not run yet</span></div><button class="btn small" data-round="old">Start</button></div>
         <div class="round" id="round-new"><span class="n">2</span><div><b>With Saved Ratios</b><span class="r" id="res-new">Not run yet</span></div><button class="btn small" data-round="new">Start</button></div>
         <div class="watch"><div><span class="big tabnum" id="bigclock">00:00</span><small id="bigsteps">0 steps</small></div><button class="btn small" id="stopBtn" hidden>Stop</button></div>
       </div>
       <div class="verdict" id="verdict" hidden></div>
+      <div class="cta" id="cta" hidden><span>Both rounds done. Last step: 6 quick questions (about 1 minute).</span><button class="btn small primary" id="ctaBtn">Give feedback</button></div>
     </section>
     <div class="head">
       <h1 id="projTitle">Vitariz</h1>
@@ -264,8 +283,8 @@ button.ctl:hover{border-color:var(--faint)}
       </div>
     </section>
 
-    <div class="guide" id="guide">
-      <b>Explore more:</b>
+    <details class="guide" id="guide">
+      <summary>Explore more features (after the test)</summary>
       <ol>
         <li>Vitariz delivers in 9:16 + 1:1 (see "Vitariz ratios" at the top). Press Generate and watch the 5-second check before anything is sent.</li>
         <li>Open the settings pill (the one showing the ratios) to add or remove a ratio. You can pick more than one.</li>
@@ -274,11 +293,37 @@ button.ctl:hover{border-color:var(--faint)}
         <li>Open Pelephone, then come back. Each client keeps its own draft and style kit.</li>
         <li>Use "+ Other ratios" under any result to make it again in another ratio from the same setup.</li>
       </ol>
-    </div>
+    </details>
 
     <div style="display:flex;gap:8px;align-items:center" id="copyWrap" hidden><button class="btn small" id="copyRuns">Copy results</button><span id="copyMsg" style="font-size:12px;color:var(--muted)"></span></div>
   </main>
 </div>
+
+<dialog id="intro" class="wide intro">
+  <h3>Thanks for testing this</h3>
+  <p>You're an agency creator. Your client <b style="color:var(--text)">Vitariz</b> needs one image in three ratios, for Stories, feed and Instagram feed. You'll make it twice, in two versions of the Artlist AI Toolkit composer, and a clock will time each round.</p>
+  <ol>
+    <li>Press <b>Start</b> on round 1 and make the pack: <b>9:16 + 1:1 + 4:5</b>, with <b>Nano Banana 2</b>. The prompt is already written.</li>
+    <li>The clock stops by itself when all three ratios are ready. Then do round 2.</li>
+    <li>Answer 6 short questions. They go to Manor on WhatsApp or email.</li>
+  </ol>
+  <p class="fine">About 5 minutes. No login. Images are mocked, so nothing is really generated or charged. This is a concept prototype, not an Artlist product. There are no right answers: if something is confusing, that's exactly what we want to know.</p>
+  <div class="foot"><button class="btn ghost" id="introLater">Look around first</button><button class="btn primary" id="introGo">Start round 1</button></div>
+</dialog>
+
+<dialog id="fb" class="wide">
+  <h3>Your feedback</h3>
+  <p>Six questions, about a minute. Nothing is sent until you press Send.</p>
+  <div class="fbsum" id="fbSum"></div>
+  <div class="q"><label class="ql" for="fbName">Your name and agency (optional)</label><input type="text" id="fbName" placeholder="Dana, Green Productions" style="margin-bottom:0"></div>
+  <div class="q"><span class="ql">1. What's your role?</span><div class="row" data-q="role"></div></div>
+  <div class="q"><span class="ql">2. How many clients or brands do you create for in a typical month?</span><div class="row" data-q="clients"></div></div>
+  <div class="q"><span class="ql">3. How many ratios does a typical deliverable need?</span><div class="row" data-q="ratios"></div></div>
+  <div class="q"><span class="ql">4. Compared with the current version, the Saved Ratios version was…</span><div class="row" data-q="ease"></div></div>
+  <div class="q"><span class="ql">5. How useful would saving ratios per client be in your real work?</span><div class="row" data-q="useful"></div></div>
+  <div class="q"><label class="ql" for="fbToday">6. How do you get the other ratios today? What was confusing or missing here?</label><textarea id="fbToday" placeholder="Anything goes: tools, workarounds, what you expected to find"></textarea></div>
+  <div class="foot" style="flex-wrap:wrap"><span id="fbMsg" style="font-size:12px;color:var(--muted);margin-right:auto;align-self:center"></span><button class="btn ghost" id="fbClose">Close</button><button class="btn" id="fbCopy">Copy</button><button class="btn" id="fbMail">Email</button><button class="btn primary" id="fbWa">Send on WhatsApp</button></div>
+</dialog>
 
 <dialog id="dlg">
   <h3>New project</h3>
@@ -413,7 +458,7 @@ function renderChips(){
   btn.innerHTML = (first?shape(first):"") + settingsLabel();
   btn.classList.toggle("hot", multi && d.formats.length>1);
   btn.setAttribute("aria-expanded", S.popOpen);
-  btn.onclick = () => { S.popOpen=!S.popOpen; step(); renderChips(); renderNotices(); };
+  btn.onclick = () => { S.popOpen=!S.popOpen; if(S.test.on && S.test.pop==null) S.test.pop=Math.round((Date.now()-S.test.t0)/1000); step(); renderChips(); renderNotices(); };
   const pop=$("#setPop"); pop.hidden=!S.popOpen;
   // Ratio block
   let ratio;
@@ -597,13 +642,13 @@ function resetForRound(){
 function startTest(v){
   if(S.test.on) stopTest(false);
   resetForRound(); setVersion(v);
-  S.test={on:true,v,t0:Date.now(),steps:0,timer:setInterval(tick,250)};
+  S.test={on:true,v,t0:Date.now(),steps:0,pop:null,timer:setInterval(tick,250)};
   tick(); renderMission();
 }
 function stopTest(done){
   clearInterval(S.test.timer);
   const v=S.test.v;
-  if(done) S.runs[v]={t:fmt(Date.now()-S.test.t0), ms:Date.now()-S.test.t0, s:S.test.steps};
+  if(done) S.runs[v]={t:fmt(Date.now()-S.test.t0), ms:Date.now()-S.test.t0, s:S.test.steps, pop:S.test.pop};
   S.test.on=false;
   if(!done){ $("#bigclock").textContent="00:00"; $("#bigsteps").textContent="0 steps"; }
   else $("#bigsteps").textContent=`${S.runs[v].s} steps · pack ready`;
@@ -616,7 +661,7 @@ function renderMission(){
     $("#round-"+v).classList.toggle("on",on); $("#round-"+v).classList.toggle("done",!!r && !on);
     $("#res-"+v).textContent = on ? "Running… make all three ratios" : r ? `Done in ${r.t} · ${r.s} steps` : "Not run yet";
     const b=document.querySelector(`[data-round="${v}"]`); b.textContent = on ? "Restart" : r ? "Run again" : "Start";
-    b.classList.toggle("primary", !S.test.on && !r && (v==="old" || S.runs.old));
+    const other=S.order.find(x=>x!==v); b.classList.toggle("primary", !S.test.on && !r && (S.order[0]===v || !!S.runs[other]));
   });
   $("#stopBtn").hidden=!S.test.on;
   document.querySelectorAll(".seg button").forEach(b=>b.disabled=S.test.on);
@@ -626,7 +671,8 @@ function renderMission(){
     vd.hidden=false;
     vd.textContent = dt>=0 ? `Saved Ratios was ${dt}s faster and took ${ds>=0?ds+" fewer":Math.abs(ds)+" more"} steps.` : `Saved Ratios was ${-dt}s slower this time and took ${ds>=0?ds+" fewer":Math.abs(ds)+" more"} steps.`;
   } else vd.hidden=true;
-  $("#copyWrap").hidden = !(o||n);
+  $("#copyWrap").hidden = true;
+  $("#cta").hidden = !(o && n) || S.test.on;
 }
 S.runs={};
 document.querySelectorAll("[data-round]").forEach(b=>b.onclick=()=>startTest(b.dataset.round));
@@ -700,5 +746,57 @@ $("#pdSave").onclick=()=>{
   pdlg.close(); render();
 };
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && dlg.open) dlg.close(); });
+// ---- Tester flow: random round order, intro, feedback ----
+S.order = Math.random()<.5 ? ["old","new"] : ["new","old"];
+S.firstPop = null;
+(function placeRounds(){
+  const wrap=$("#round-old").parentNode, watch=wrap.querySelector(".watch");
+  S.order.forEach((v,i)=>{ const el=$("#round-"+v); el.querySelector(".n").textContent=i+1; wrap.insertBefore(el, watch); });
+})();
+const LABEL={old:"Current version", new:"With Saved Ratios"};
+const QS={
+  role:["Creative / designer","Video editor","Producer / PM","Freelancer","Other"],
+  clients:["1","2–4","5–10","10+"],
+  ratios:["1","2","3","4+"],
+  ease:["Much easier","Easier","About the same","Harder","Much harder"],
+  useful:["1 · Not useful","2","3","4","5 · Very useful"]
+};
+const FB={};
+document.querySelectorAll("[data-q]").forEach(row=>{
+  const k=row.dataset.q;
+  row.innerHTML=QS[k].map(o=>`<button class="chip" data-v="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join("");
+  row.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ FB[k]=b.dataset.v; row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); });
+});
+function fbText(){
+  const r=v=>S.runs[v]?`${S.runs[v].t}, ${S.runs[v].s} steps${v==="new"&&S.runs.new.pop!=null?`, found the ratio settings after ${S.runs.new.pop}s`:""}`:"not done";
+  return [
+    "Saved Ratios prototype · feedback",
+    `Name: ${$("#fbName").value.trim()||"-"}`,
+    `Role: ${FB.role||"-"}`,
+    `Clients per month: ${FB.clients||"-"}`,
+    `Ratios per deliverable: ${FB.ratios||"-"}`,
+    `Round order: ${S.order.map(v=>LABEL[v]).join(" → ")}`,
+    `Current version: ${r("old")}`,
+    `With Saved Ratios: ${r("new")}`,
+    `Saved Ratios vs current: ${FB.ease||"-"}`,
+    `Usefulness (1–5): ${FB.useful?FB.useful[0]:"-"}`,
+    `Today / confusing / missing: ${$("#fbToday").value.trim()||"-"}`,
+    `Device: ${innerWidth<760?"phone":"desktop"}`
+  ].join("\n");
+}
+function openFb(){
+  const r=v=>S.runs[v]?`${S.runs[v].t} · ${S.runs[v].s} steps`:"not done yet";
+  $("#fbSum").innerHTML=`Your times, included automatically: current version <b>${r("old")}</b> · Saved Ratios <b>${r("new")}</b>`;
+  $("#fbMsg").textContent=""; $("#fb").showModal();
+}
+$("#fbOpen").onclick=openFb; $("#ctaBtn").onclick=openFb; $("#fbClose").onclick=()=>$("#fb").close();
+$("#fbWa").onclick=()=>{ window.open("https://wa.me/?text="+encodeURIComponent(fbText()),"_blank","noopener"); $("#fbMsg").textContent="Pick Manor in WhatsApp and send. Thank you!"; };
+$("#fbMail").onclick=()=>{ location.href="mailto:?subject="+encodeURIComponent("Saved Ratios · feedback")+"&body="+encodeURIComponent(fbText()); $("#fbMsg").textContent="Send it to Manor. Thank you!"; };
+$("#fbCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(fbText()); $("#fbMsg").textContent="Copied. Paste it to Manor anywhere."; }catch(e){ $("#fbMsg").textContent="Copy didn't work here. Use WhatsApp or Email."; } };
+$("#introGo").onclick=()=>{ $("#intro").close(); startTest(S.order[0]); };
+$("#introLater").onclick=()=>$("#intro").close();
+$("#introOpen").onclick=()=>$("#intro").showModal();
+renderMission();
 render();
+if(!/[?&]skipintro/.test(location.search)) $("#intro").showModal();
 </script>
