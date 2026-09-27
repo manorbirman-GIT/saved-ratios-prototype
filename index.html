@@ -119,6 +119,23 @@ textarea{width:100%;min-height:74px;resize:vertical;background:transparent;borde
 .bar2{height:3px;background:var(--line);border-radius:3px;overflow:hidden;width:100%;flex-basis:100%}
 .bar2 i{display:block;height:100%;background:var(--accent);width:0%;transition:width .1s linear}
 
+.mission{border:1px solid var(--line2);border-radius:var(--r);background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.mission.live{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.mission .goal{font-size:14px;line-height:1.5}
+.mission .goal b{color:var(--accent)}
+.mission .goal small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.rounds{display:grid;grid-template-columns:1fr 1fr minmax(170px,.8fr);gap:10px}
+.round{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.round .n{width:24px;height:24px;border-radius:50%;background:var(--raise);display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.round.on{border-color:var(--accent)} .round.on .n{background:var(--accent);color:var(--accent-ink)}
+.round.done .n{background:var(--ok);color:#06210f}
+.round div{flex:1;min-width:0} .round b{display:block;font-size:13px} .round span.r{display:block;font-size:12px;color:var(--muted)}
+.watch{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.watch .big{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:.02em}
+.mission.live .watch .big{color:var(--accent)}
+.watch small{display:block;color:var(--muted);font-size:12px}
+.verdict{font-size:13px;color:var(--ok)}
+@media (max-width:760px){.rounds{grid-template-columns:1fr}}
 .runs{font-size:12px;color:var(--muted)}
 .runs table{border-collapse:collapse;width:100%}
 .runs td,.runs th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
@@ -184,10 +201,7 @@ button.ctl:hover{border-color:var(--faint)}
     <button id="modeOld" aria-pressed="false">Current Toolkit</button>
     <button id="modeNew" aria-pressed="true">With Saved Ratios</button>
   </div>
-  <div class="test">
-    <span class="clock tabnum" id="clock">00:00 · 0 steps</span>
-    <button class="btn small" id="testBtn">Start test</button>
-  </div>
+  
 </header>
 
 <div class="app">
@@ -199,6 +213,16 @@ button.ctl:hover{border-color:var(--faint)}
   </aside>
 
   <main class="main">
+    <section class="mission" id="mission" aria-label="Test mission">
+      <div class="goal">Your mission: make <b>Vitariz</b> in <b>9:16 + 1:1 + 4:5</b> with <b>Nano Banana 2</b> (image mode).
+        <small>Do it twice: first in the current Toolkit, then with Saved Ratios. The clock starts when you press Start and stops by itself when all three ratios are ready.</small></div>
+      <div class="rounds">
+        <div class="round" id="round-old"><span class="n">1</span><div><b>Current Toolkit</b><span class="r" id="res-old">Not run yet</span></div><button class="btn small" data-round="old">Start</button></div>
+        <div class="round" id="round-new"><span class="n">2</span><div><b>With Saved Ratios</b><span class="r" id="res-new">Not run yet</span></div><button class="btn small" data-round="new">Start</button></div>
+        <div class="watch"><div><span class="big tabnum" id="bigclock">00:00</span><small id="bigsteps">0 steps</small></div><button class="btn small" id="stopBtn" hidden>Stop</button></div>
+      </div>
+      <div class="verdict" id="verdict" hidden></div>
+    </section>
     <div class="head">
       <h1 id="projTitle">Vitariz</h1>
       <span class="kit" id="kitTag"></span>
@@ -241,7 +265,7 @@ button.ctl:hover{border-color:var(--faint)}
     </section>
 
     <div class="guide" id="guide">
-      <b>Try it:</b>
+      <b>Explore more:</b>
       <ol>
         <li>Vitariz delivers in 9:16 + 1:1 (see "Vitariz ratios" at the top). Press Generate and watch the 5-second check before anything is sent.</li>
         <li>Open the settings pill (the one showing the ratios) to add or remove a ratio. You can pick more than one.</li>
@@ -252,10 +276,7 @@ button.ctl:hover{border-color:var(--faint)}
       </ol>
     </div>
 
-    <div class="runs" id="runs" hidden>
-      <div class="runs-wrap"><table><thead><tr><th>Version</th><th>Project</th><th>Time to pack</th><th>Steps</th></tr></thead><tbody id="runsBody"></tbody></table></div>
-      <div style="margin-top:8px"><button class="btn small" id="copyRuns">Copy results</button> <span id="copyMsg"></span></div>
-    </div>
+    <div style="display:flex;gap:8px;align-items:center" id="copyWrap" hidden><button class="btn small" id="copyRuns">Copy results</button><span id="copyMsg" style="font-size:12px;color:var(--muted)"></span></div>
   </main>
 </div>
 
@@ -327,7 +348,7 @@ let S = {
       preset:["16:9","9:16"], draft:{mode:"video", model:"klv3", prompt:PROMPTS.pelephone.video, formats:["16:9","9:16"], res:"1080p", count:1, dur:"5s", kit:"Pelephone | 5G Arena"}, results:[], fallback:null}
   },
   old:{draft:{mode:"image", model:"nb2", prompt:"", ratio:"16:9", res:"1K", count:1, dur:"5s", kit:"Vitariz | Café UGC"}, owner:null}, popOpen:false,
-  lastSync:null, pending:null, test:{on:false, t0:0, steps:0, timer:null}, runs:[]
+  lastSync:null, pending:null, test:{on:false, t0:0, steps:0, timer:null}, runs:{}
 };
 
 const $ = s => document.querySelector(s);
@@ -513,7 +534,7 @@ function renderOldBanner(){
   } else b.hidden=true;
 }
 
-function render(){ renderSide(); renderHead(); renderComposer(); renderResults(); renderOldBanner(); $("#guide").hidden = S.test.on; }
+function render(){ renderSide(); renderHead(); renderComposer(); renderResults(); renderOldBanner(); }
 
 function switchProject(k){
   if(k===S.current) return; step();
@@ -554,37 +575,66 @@ function runGeneration(assets, append){
   setTimeout(()=>{ items.forEach(it=>it.loading=false); if(S.current===key) renderResults(); checkPackDone(key); },1400);
 }
 
+const MISSION={project:"vitariz", ratios:["9:16","1:1","4:5"], model:"Nano Banana 2"};
 function checkPackDone(key){
-  if(!S.test.on) return;
-  const p=S.projects[key];
-  const have = new Set((S.version==="new" ? p.results : (S.old.owner===key?S.old.results:[])).filter(a=>!a.loading).map(a=>a.ratio));
-  if(p.preset.every(r=>have.has(r))) stopTest(true, key);
+  if(!S.test.on || key!==MISSION.project) return;
+  const list = S.version==="new" ? S.projects[key].results : (S.old.owner===key ? S.old.results : []);
+  const have = new Set(list.filter(a=>!a.loading && a.model===MISSION.model).map(a=>a.ratio));
+  if(MISSION.ratios.every(r=>have.has(r))) stopTest(true);
 }
 
 // Test mode
 function fmt(ms){ const s=Math.floor(ms/1000); return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
-function tick(){ $("#clock").textContent = `${fmt(Date.now()-S.test.t0)} · ${S.test.steps} steps`; }
+function tick(){ $("#bigclock").textContent = fmt(Date.now()-S.test.t0); $("#bigsteps").textContent = `${S.test.steps} steps`; }
 function step(){ if(S.test.on){ S.test.steps++; tick(); } }
-function startTest(){
-  S.test={on:true,t0:Date.now(),steps:0,timer:setInterval(tick,250)};
-  Object.values(S.projects).forEach(p=>p.results=[]); S.old.results=[]; S.old.owner=null;
-  $("#testBtn").textContent="Stop"; tick(); render();
+function resetForRound(){
+  Object.values(S.projects).forEach(p=>{ p.results=[]; p.fallback=null; });
+  const v=S.projects.vitariz; v.preset=["9:16","1:1"];
+  v.draft={mode:"image", model:"nb2", prompt:PROMPTS.vitariz.image, formats:["9:16","1:1"], res:"2K", count:1, dur:"5s", kit:v.kit};
+  S.old={draft:{mode:"image", model:"nb2", prompt:PROMPTS.vitariz.image, ratio:"16:9", res:"1K", count:1, dur:"5s", kit:v.kit}, owner:"vitariz", results:[]};
+  S.current="vitariz"; S.lastSync=null; S.popOpen=false; S.openMore=null;
 }
-function stopTest(done,key){
+function startTest(v){
+  if(S.test.on) stopTest(false);
+  resetForRound(); setVersion(v);
+  S.test={on:true,v,t0:Date.now(),steps:0,timer:setInterval(tick,250)};
+  tick(); renderMission();
+}
+function stopTest(done){
   clearInterval(S.test.timer);
-  if(done){ S.runs.push({v:S.version==="new"?"With Saved Ratios":"Current Toolkit", p:S.projects[key].name + " (" + S.projects[key].preset.join(" + ") + ")", t:fmt(Date.now()-S.test.t0), s:S.test.steps}); }
-  S.test.on=false; $("#testBtn").textContent="Start test";
-  $("#clock").textContent = done ? `Pack ready · ${S.runs.at(-1).t} · ${S.runs.at(-1).s} steps` : "00:00 · 0 steps";
-  renderRuns(); render();
+  const v=S.test.v;
+  if(done) S.runs[v]={t:fmt(Date.now()-S.test.t0), ms:Date.now()-S.test.t0, s:S.test.steps};
+  S.test.on=false;
+  if(!done){ $("#bigclock").textContent="00:00"; $("#bigsteps").textContent="0 steps"; }
+  else $("#bigsteps").textContent=`${S.runs[v].s} steps · pack ready`;
+  renderMission(); render();
 }
-function renderRuns(){
-  $("#runs").hidden=!S.runs.length;
-  $("#runsBody").innerHTML=S.runs.map(r=>`<tr><td>${r.v}</td><td>${esc(r.p)}</td><td class="tabnum">${r.t}</td><td class="tabnum">${r.s}</td></tr>`).join("");
+function renderMission(){
+  $("#mission").classList.toggle("live",S.test.on);
+  ["old","new"].forEach(v=>{
+    const r=S.runs[v], on=S.test.on && S.test.v===v;
+    $("#round-"+v).classList.toggle("on",on); $("#round-"+v).classList.toggle("done",!!r && !on);
+    $("#res-"+v).textContent = on ? "Running… make all three ratios" : r ? `Done in ${r.t} · ${r.s} steps` : "Not run yet";
+    const b=document.querySelector(`[data-round="${v}"]`); b.textContent = on ? "Restart" : r ? "Run again" : "Start";
+    b.classList.toggle("primary", !S.test.on && !r && (v==="old" || S.runs.old));
+  });
+  $("#stopBtn").hidden=!S.test.on;
+  document.querySelectorAll(".seg button").forEach(b=>b.disabled=S.test.on);
+  const o=S.runs.old, n=S.runs.new, vd=$("#verdict");
+  if(o && n){
+    const dt=Math.round((o.ms-n.ms)/1000), ds=o.s-n.s;
+    vd.hidden=false;
+    vd.textContent = dt>=0 ? `Saved Ratios was ${dt}s faster and took ${ds>=0?ds+" fewer":Math.abs(ds)+" more"} steps.` : `Saved Ratios was ${-dt}s slower this time and took ${ds>=0?ds+" fewer":Math.abs(ds)+" more"} steps.`;
+  } else vd.hidden=true;
+  $("#copyWrap").hidden = !(o||n);
 }
-$("#testBtn").onclick=()=> S.test.on ? stopTest(false) : startTest();
+S.runs={};
+document.querySelectorAll("[data-round]").forEach(b=>b.onclick=()=>startTest(b.dataset.round));
+$("#stopBtn").onclick=()=>stopTest(false);
 $("#copyRuns").onclick=async()=>{
-  const txt=S.runs.map(r=>`${r.v}\t${r.p}\t${r.t}\t${r.s}`).join("\n");
-  try{ await navigator.clipboard.writeText(txt); $("#copyMsg").textContent="Copied"; }catch(e){ $("#copyMsg").textContent="Select the table and copy it"; }
+  const row=(label,r)=>r?`${label}\t${r.t}\t${r.s} steps`:"";
+  const txt=["Mission: Vitariz 9:16 + 1:1 + 4:5, Nano Banana 2", row("Current Toolkit",S.runs.old), row("With Saved Ratios",S.runs.new)].filter(Boolean).join("\n");
+  try{ await navigator.clipboard.writeText(txt); $("#copyMsg").textContent="Copied"; }catch(e){ $("#copyMsg").textContent="Copy failed, note the times above"; }
 };
 
 // Version switch
