@@ -152,6 +152,8 @@ button.ctl:hover{border-color:var(--faint)}
 .pop{position:absolute;bottom:calc(100% + 8px);left:0;z-index:5;background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:14px;width:min(330px,calc(100vw - 40px));box-shadow:0 12px 40px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:12px}
 .pop h4{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:600}
 .pop .opts{display:flex;gap:5px;flex-wrap:wrap}
+.pop .notice{font-size:12px;padding:8px 10px;margin-top:8px}
+.pop .notice .acts button{padding:3px 8px;font-size:11px}
 .pop small{display:block;color:var(--faint);font-size:11px;margin-top:6px}
 .tog{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text);cursor:pointer;position:relative}
 .tog input{position:absolute;opacity:0;width:1px;height:1px}
@@ -390,7 +392,7 @@ function renderChips(){
   btn.innerHTML = (first?shape(first):"") + settingsLabel();
   btn.classList.toggle("hot", multi && d.formats.length>1);
   btn.setAttribute("aria-expanded", S.popOpen);
-  btn.onclick = () => { S.popOpen=!S.popOpen; step(); renderChips(); };
+  btn.onclick = () => { S.popOpen=!S.popOpen; step(); renderChips(); renderNotices(); };
   const pop=$("#setPop"); pop.hidden=!S.popOpen;
   // Ratio block
   let ratio;
@@ -405,7 +407,7 @@ function renderChips(){
   const tail = d.mode==="image"
     ? `<div><h4>Images per ratio</h4><div class="opts">${[1,2,3,4].map(n=>`<button class="chip" data-cnt="${n}" aria-pressed="${n===d.count}">${n}</button>`).join("")}</div></div>`
     : `<div><h4>Duration</h4><div class="opts">${["5s","10s"].map(x=>`<button class="chip" data-dur="${x}" aria-pressed="${x===d.dur}">${x}</button>`).join("")}</div></div>`;
-  pop.innerHTML = `<div>${ratio}</div>${res}${tail}`;
+  pop.innerHTML = `<div>${ratio}<div id="popNotice"></div></div>${res}${tail}`;
   pop.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{
     const r=b.dataset.r; d.formats = d.formats.includes(r) ? d.formats.filter(x=>x!==r) : RATIOS.filter(x=>d.formats.includes(x)||x===r);
     S.lastSync=null; step(); renderChips(); renderNotices();
@@ -421,7 +423,7 @@ function renderChips(){
 }
 document.addEventListener("click",e=>{
   if(!S.popOpen || !document.contains(e.target) || e.target.closest(".setwrap")) return;
-  S.popOpen=false; renderChips();
+  S.popOpen=false; renderChips(); renderNotices();
 });
 
 function planAssets(){
@@ -437,6 +439,8 @@ function planAssets(){
 
 function renderNotices(){
   const area=$("#noticeArea"); area.innerHTML="";
+  const pn=$("#popNotice"); if(pn) pn.innerHTML="";
+  const warnArea = (S.popOpen && pn) ? pn : area;
   const d=D(), m=M(d.model), p=P();
   if(S.version==="new" && S.lastSync){
     area.insertAdjacentHTML("beforeend",`<div class="toast">Added ${S.lastSync.set} because your prompt says so <button id="undoSync">Undo</button></div>`);
@@ -448,14 +452,14 @@ function renderNotices(){
   }
   if(S.version==="new"){
     if(m.auto){
-      area.insertAdjacentHTML("beforeend",`<div class="notice warn"><span>${m.name} has no format choice. The ratio follows your start frame, so ${esc(p.name)} ratios can't be applied.</span><div class="acts"><button id="swAuto">Switch to ${M(firstModel(d.mode)).name}</button></div></div>`);
+      warnArea.insertAdjacentHTML("beforeend",`<div class="notice warn"><span>${m.name} has no format choice. The ratio follows your start frame, so ${esc(p.name)} ratios can't be applied.</span><div class="acts"><button id="swAuto">Switch to ${M(firstModel(d.mode)).name}</button></div></div>`);
       $("#swAuto").onclick=()=>{ d.model=firstModel(d.mode); step(); renderComposer(); };
       return;
     }
     const miss = d.formats.filter(r=>!m.ratios.includes(r) && !(p.fallback && p.fallback[r]));
     if(miss.length){
       const r=miss[0], alt=bestModelFor(r,d.mode);
-      area.insertAdjacentHTML("beforeend",`<div class="notice warn"><span>${m.name} can't make ${r}${miss.length>1?` or ${miss.slice(1).join(", ")}`:""}. Choose how to handle it before you generate.</span>
+      warnArea.insertAdjacentHTML("beforeend",`<div class="notice warn"><span>${m.name} can't make ${r}${miss.length>1?` or ${miss.slice(1).join(", ")}`:""}. Choose how to handle it before you generate.</span>
         <div class="acts">${alt?`<button id="fbAlt">Make ${r} with ${alt.name}</button>`:""}<button id="fbSkip">Skip ${r}</button>${alt?`<button id="fbAll">Use ${alt.name} for all</button>`:""}
         <label><input type="checkbox" id="fbRemember" checked> Remember for ${esc(p.name)}</label></div></div>`);
       const setFb = v => { const rem=$("#fbRemember").checked; p.fallback = p.fallback||{}; miss.forEach(x=>p.fallback[x]=v); if(!rem) p._tempFb=true; step(); renderChips(); renderNotices(); };
