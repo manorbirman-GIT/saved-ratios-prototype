@@ -324,7 +324,7 @@ button.ctl:hover{border-color:var(--faint)}
   <div class="q"><span class="ql">6. Compared with the current version, the Saved Ratios version was…</span><div class="row" data-q="ease"></div></div>
   <div class="q"><span class="ql">7. How useful would saving ratios per client be in your real work?</span><div class="row" data-q="useful"></div></div>
   <div class="q"><label class="ql" for="fbToday">8. How do you get the other ratios today? What was confusing or missing here?</label><textarea id="fbToday" placeholder="Anything goes: tools, workarounds, what you expected to find"></textarea></div>
-  <div class="foot" style="flex-wrap:wrap"><span id="fbMsg" style="font-size:12px;color:var(--muted);margin-right:auto;align-self:center"></span><button class="btn ghost" id="fbClose">Close</button><button class="btn" id="fbCopy">Copy</button><button class="btn" id="fbMail">Email</button><button class="btn primary" id="fbWa">Send on WhatsApp</button></div>
+  <div class="foot" style="flex-wrap:wrap"><span id="fbMsg" style="font-size:12px;color:var(--muted);margin-right:auto;align-self:center"></span><button class="btn ghost" id="fbClose">Close</button><button class="btn" id="fbCopy">Copy</button><button class="btn" id="fbMail">Send by Gmail</button><button class="btn primary" id="fbWa">Send on WhatsApp</button></div>
 </dialog>
 
 <dialog id="dlg">
@@ -809,7 +809,12 @@ function openFb(){
 }
 $("#fbOpen").onclick=openFb; $("#ctaBtn").onclick=openFb; $("#fbClose").onclick=()=>$("#fb").close();
 $("#fbWa").onclick=()=>{ window.open("https://wa.me/?text="+encodeURIComponent(fbText()),"_blank","noopener"); $("#fbMsg").textContent="Pick Manor in WhatsApp and send. Thank you!"; };
-$("#fbMail").onclick=()=>{ location.href="mailto:manorbirman@gmail.com?subject="+encodeURIComponent("Saved Ratios · feedback")+"&body="+encodeURIComponent(fbText()); $("#fbMsg").textContent="Your email app should open with it ready. If nothing opened, press Copy and email it to manorbirman@gmail.com."; };
+const TO="manorbirman@gmail.com", SUBJ="Saved Ratios · feedback";
+$("#fbMail").onclick=()=>{
+  const url="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(TO)+"&su="+encodeURIComponent(SUBJ)+"&body="+encodeURIComponent(fbText());
+  window.open(url,"_blank","noopener");
+  $("#fbMsg").innerHTML=`A Gmail message opened in a new tab, ready to go. Just press Send. Not using Gmail? <a href="mailto:${TO}?subject=${encodeURIComponent(SUBJ)}&body=${encodeURIComponent(fbText())}" style="color:var(--accent)">Open your email app</a>`;
+};
 $("#fbCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(fbText()); $("#fbMsg").textContent="Copied. Paste it to Manor anywhere."; }catch(e){ $("#fbMsg").textContent="Copy didn't work here. Use WhatsApp or Email."; } };
 $("#introGo").onclick=()=>{ $("#intro").close(); startTest(S.order[0]); };
 $("#introLater").onclick=()=>$("#intro").close();
