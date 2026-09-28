@@ -778,15 +778,19 @@ document.querySelectorAll("[data-q]").forEach(row=>{
     if(row.dataset.multi){ const on=b.getAttribute("aria-pressed")!=="true"; b.setAttribute("aria-pressed",on);
       FB[k]=[...row.querySelectorAll('.chip[aria-pressed="true"]')].map(x=>x.dataset.v).join(", "); return; }
     FB[k]=b.dataset.v; row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); });
+  row.addEventListener("click",()=>{ const inp=$("#other-"+k); if(!inp) return;
+    const on=!!row.querySelector('.chip[data-v="Other"][aria-pressed="true"]'); inp.hidden=!on; if(on) inp.focus(); });
+  if(QS[k].includes("Other")) row.insertAdjacentHTML("afterend",`<input type="text" id="other-${k}" placeholder="Type your answer" hidden style="margin:8px 0 0">`);
 });
+function withOther(k){ const v=FB[k]||"-"; const o=$("#other-"+k); const t=o&&!o.hidden?o.value.trim():""; return t? v.replace("Other","Other: "+t) : v; }
 function fbText(){
   const r=v=>S.runs[v]?`${S.runs[v].t}, ${S.runs[v].s} steps${v==="new"&&S.runs.new.pop!=null?`, found the ratio settings after ${S.runs.new.pop}s`:""}`:"not done";
   return [
     "Saved Ratios prototype · feedback",
     `Name: ${$("#fbName").value.trim()||"-"}`,
     `Used Artlist AI Toolkit before: ${FB.artlist||"-"}`,
-    `AI tools today: ${FB.tools||"-"}`,
-    `Role: ${FB.role||"-"}`,
+    `AI tools today: ${withOther("tools")}`,
+    `Role: ${withOther("role")}`,
     `Clients per month: ${FB.clients||"-"}`,
     `Ratios per deliverable: ${FB.ratios||"-"}`,
     `Round order: ${S.order.map(v=>LABEL[v]).join(" → ")}`,
@@ -805,7 +809,7 @@ function openFb(){
 }
 $("#fbOpen").onclick=openFb; $("#ctaBtn").onclick=openFb; $("#fbClose").onclick=()=>$("#fb").close();
 $("#fbWa").onclick=()=>{ window.open("https://wa.me/?text="+encodeURIComponent(fbText()),"_blank","noopener"); $("#fbMsg").textContent="Pick Manor in WhatsApp and send. Thank you!"; };
-$("#fbMail").onclick=()=>{ location.href="mailto:?subject="+encodeURIComponent("Saved Ratios · feedback")+"&body="+encodeURIComponent(fbText()); $("#fbMsg").textContent="Send it to Manor. Thank you!"; };
+$("#fbMail").onclick=()=>{ location.href="mailto:manorbirman@gmail.com?subject="+encodeURIComponent("Saved Ratios · feedback")+"&body="+encodeURIComponent(fbText()); $("#fbMsg").textContent="Your email app should open with it ready. If nothing opened, press Copy and email it to manorbirman@gmail.com."; };
 $("#fbCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(fbText()); $("#fbMsg").textContent="Copied. Paste it to Manor anywhere."; }catch(e){ $("#fbMsg").textContent="Copy didn't work here. Use WhatsApp or Email."; } };
 $("#introGo").onclick=()=>{ $("#intro").close(); startTest(S.order[0]); };
 $("#introLater").onclick=()=>$("#intro").close();
