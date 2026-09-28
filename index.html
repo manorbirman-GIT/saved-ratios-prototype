@@ -240,7 +240,7 @@ button.ctl:hover{border-color:var(--faint)}
         <div class="watch"><div><span class="big tabnum" id="bigclock">00:00</span><small id="bigsteps">0 steps</small></div><button class="btn small" id="stopBtn" hidden>Stop</button></div>
       </div>
       <div class="verdict" id="verdict" hidden></div>
-      <div class="cta" id="cta" hidden><span>Both rounds done. Last step: 6 quick questions (about 1 minute).</span><button class="btn small primary" id="ctaBtn">Give feedback</button></div>
+      <div class="cta" id="cta" hidden><span>Both rounds done. Last step: 8 quick questions (about 1 minute).</span><button class="btn small primary" id="ctaBtn">Give feedback</button></div>
     </section>
     <div class="head">
       <h1 id="projTitle">Vitariz</h1>
@@ -305,7 +305,7 @@ button.ctl:hover{border-color:var(--faint)}
   <ol>
     <li>Press <b>Start</b> on round 1 and make the pack: <b>9:16 + 1:1 + 4:5</b>, with <b>Nano Banana 2</b>. The prompt is already written.</li>
     <li>The clock stops by itself when all three ratios are ready. Then do round 2.</li>
-    <li>Answer 6 short questions. They go to Manor on WhatsApp or email.</li>
+    <li>Answer 8 quick questions. They go to Manor on WhatsApp or email.</li>
   </ol>
   <p class="fine">About 5 minutes. No login. Images are mocked, so nothing is really generated or charged. This is a concept prototype, not an Artlist product. There are no right answers: if something is confusing, that's exactly what we want to know.</p>
   <div class="foot"><button class="btn ghost" id="introLater">Look around first</button><button class="btn primary" id="introGo">Start round 1</button></div>
@@ -313,15 +313,17 @@ button.ctl:hover{border-color:var(--faint)}
 
 <dialog id="fb" class="wide">
   <h3>Your feedback</h3>
-  <p>Six questions, about a minute. Nothing is sent until you press Send.</p>
+  <p>Eight quick questions, about a minute. Nothing is sent until you press Send.</p>
   <div class="fbsum" id="fbSum"></div>
   <div class="q"><label class="ql" for="fbName">Your name and agency (optional)</label><input type="text" id="fbName" placeholder="Dana, Green Productions" style="margin-bottom:0"></div>
-  <div class="q"><span class="ql">1. What's your role?</span><div class="row" data-q="role"></div></div>
-  <div class="q"><span class="ql">2. How many clients or brands do you create for in a typical month?</span><div class="row" data-q="clients"></div></div>
-  <div class="q"><span class="ql">3. How many ratios does a typical deliverable need?</span><div class="row" data-q="ratios"></div></div>
-  <div class="q"><span class="ql">4. Compared with the current version, the Saved Ratios version was…</span><div class="row" data-q="ease"></div></div>
-  <div class="q"><span class="ql">5. How useful would saving ratios per client be in your real work?</span><div class="row" data-q="useful"></div></div>
-  <div class="q"><label class="ql" for="fbToday">6. How do you get the other ratios today? What was confusing or missing here?</label><textarea id="fbToday" placeholder="Anything goes: tools, workarounds, what you expected to find"></textarea></div>
+  <div class="q"><span class="ql">1. Have you used Artlist's AI Toolkit before?</span><div class="row" data-q="artlist"></div></div>
+  <div class="q"><span class="ql">2. Which AI image or video tools do you use today? (pick any)</span><div class="row" data-q="tools" data-multi="1"></div></div>
+  <div class="q"><span class="ql">3. What's your role?</span><div class="row" data-q="role"></div></div>
+  <div class="q"><span class="ql">4. How many clients or brands do you create for in a typical month?</span><div class="row" data-q="clients"></div></div>
+  <div class="q"><span class="ql">5. How many ratios does a typical deliverable need?</span><div class="row" data-q="ratios"></div></div>
+  <div class="q"><span class="ql">6. Compared with the current version, the Saved Ratios version was…</span><div class="row" data-q="ease"></div></div>
+  <div class="q"><span class="ql">7. How useful would saving ratios per client be in your real work?</span><div class="row" data-q="useful"></div></div>
+  <div class="q"><label class="ql" for="fbToday">8. How do you get the other ratios today? What was confusing or missing here?</label><textarea id="fbToday" placeholder="Anything goes: tools, workarounds, what you expected to find"></textarea></div>
   <div class="foot" style="flex-wrap:wrap"><span id="fbMsg" style="font-size:12px;color:var(--muted);margin-right:auto;align-self:center"></span><button class="btn ghost" id="fbClose">Close</button><button class="btn" id="fbCopy">Copy</button><button class="btn" id="fbMail">Email</button><button class="btn primary" id="fbWa">Send on WhatsApp</button></div>
 </dialog>
 
@@ -755,6 +757,8 @@ S.firstPop = null;
 })();
 const LABEL={old:"Current version", new:"With Saved Ratios"};
 const QS={
+  artlist:["Never","Tried it once or twice","I use it regularly"],
+  tools:["Higgsfield","Google Flow / Veo","Midjourney","Runway","Kling","Adobe Firefly","ChatGPT","None","Other"],
   role:["Creative / designer","Video editor","Producer / PM","Freelancer","Other"],
   clients:["1","2–4","5–10","10+"],
   ratios:["1","2","3","4+"],
@@ -765,13 +769,18 @@ const FB={};
 document.querySelectorAll("[data-q]").forEach(row=>{
   const k=row.dataset.q;
   row.innerHTML=QS[k].map(o=>`<button class="chip" data-v="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join("");
-  row.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ FB[k]=b.dataset.v; row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); });
+  row.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    if(row.dataset.multi){ const on=b.getAttribute("aria-pressed")!=="true"; b.setAttribute("aria-pressed",on);
+      FB[k]=[...row.querySelectorAll('.chip[aria-pressed="true"]')].map(x=>x.dataset.v).join(", "); return; }
+    FB[k]=b.dataset.v; row.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); });
 });
 function fbText(){
   const r=v=>S.runs[v]?`${S.runs[v].t}, ${S.runs[v].s} steps${v==="new"&&S.runs.new.pop!=null?`, found the ratio settings after ${S.runs.new.pop}s`:""}`:"not done";
   return [
     "Saved Ratios prototype · feedback",
     `Name: ${$("#fbName").value.trim()||"-"}`,
+    `Used Artlist AI Toolkit before: ${FB.artlist||"-"}`,
+    `AI tools today: ${FB.tools||"-"}`,
     `Role: ${FB.role||"-"}`,
     `Clients per month: ${FB.clients||"-"}`,
     `Ratios per deliverable: ${FB.ratios||"-"}`,
