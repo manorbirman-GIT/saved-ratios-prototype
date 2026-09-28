@@ -84,7 +84,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @keyframes sh{from{background-position:100% 0}to{background-position:0 0}}
 @media (prefers-reduced-motion:reduce){.frame.loading{animation:none}}
 .meta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:12px;color:var(--muted)}
-.meta button{color:var(--accent);font-size:12px;font-weight:600}
+.meta button{color:var(--accent);font-size:12px;font-weight:600;white-space:nowrap}
 .meta button:hover{text-decoration:underline}
 
 .composer{border:1px solid var(--line2);border-radius:18px;background:var(--card);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
@@ -289,9 +289,9 @@ button.ctl:hover{border-color:var(--faint)}
         <li>Vitariz delivers in 9:16 + 1:1 (see "Vitariz ratios" at the top). Press Generate and watch the 5-second check before anything is sent.</li>
         <li>Open the settings pill (the one showing the ratios) to add or remove a ratio. You can pick more than one.</li>
         <li>Switch mode to Video and model to Veo 3.1. It can't make 1:1, so you get a choice instead of a silent failure.</li>
-        <li>Type "square" or "vertical" in the prompt. The ratio follows your words.</li>
+        <li>Type "square", "vertical" or both in the prompt. The matching ratios are added for you, with Undo.</li>
         <li>Open Pelephone, then come back. Each client keeps its own draft and style kit.</li>
-        <li>Use "+ Other ratios" under any result to make it again in another ratio from the same setup.</li>
+        <li>Under any result, press "+ Add a ratio" to get the same image in a ratio you didn't pick, for example 16:9.</li>
       </ol>
     </details>
 
@@ -539,14 +539,17 @@ function renderNotices(){
 
 function syncFromPrompt(text){
   if(S.version!=="new") return;
-  const d=D(); const t=text.toLowerCase(); let set=null;
-  if(/\b(vertical|portrait)\b|9:16/.test(t)) set="9:16";
-  else if(/\bsquare\b|1:1/.test(t)) set="1:1";
-  else if(/\b(horizontal|landscape|widescreen)\b|16:9/.test(t)) set="16:9";
-  else if(/4:5/.test(t)) set="4:5";
-  if(set && !d.formats.includes(set)){
-    S.lastSync={set, prev:[...d.formats]};
-    d.formats = RATIOS.filter(x=>d.formats.includes(x)||x===set);
+  const d=D(); const t=text.toLowerCase(); const found=[];
+  if(/\b(vertical|portrait)\b|9:16/.test(t)) found.push("9:16");
+  if(/\bsquare\b|1:1/.test(t)) found.push("1:1");
+  if(/\b(horizontal|landscape|widescreen)\b|16:9/.test(t)) found.push("16:9");
+  if(/4:5/.test(t)) found.push("4:5");
+  const add=found.filter(r=>!d.formats.includes(r));
+  if(add.length){
+    const prev = S.lastSync ? S.lastSync.prev : [...d.formats];
+    const set = S.lastSync ? [...new Set([...S.lastSync.set.split(" + "),...add])] : add;
+    S.lastSync={set:RATIOS.filter(r=>set.includes(r)).join(" + "), prev};
+    d.formats = RATIOS.filter(x=>d.formats.includes(x)||add.includes(x));
     renderChips(); renderNotices();
   }
 }
@@ -560,8 +563,8 @@ function renderResults(){
     const [w,h]=a.ratio.split(":").map(Number); const width = Math.round(220*Math.sqrt(w/h));
     return `<div class="asset" style="--w:${Math.min(width,300)}px">
       <div class="frame ${a.loading?"loading":""}" style="--ar:${w}/${h}">${a.loading?`<span class="tag">Generating ${a.ratio}…</span>`:`<img alt="${esc(p.name)} ${a.ratio}" src="${IMG[a.img][a.ratio]}"><span class="tag">${a.ratio}</span>${a.mode==="video"?`<span class="play" aria-hidden="true">▶</span>`:""}`}</div>
-      <div class="meta"><span>${a.model}</span>${!a.loading && S.version==="new" && missing.length ? `<button data-more="${i}" aria-expanded="${S.openMore===i}">+ Other ratios</button>`:""}</div>
-      ${S.openMore===i && !a.loading ? `<div class="more"><small>Same prompt, kit and reference</small><div class="opts">${missing.map(r=>`<button data-add="${i}|${r}">${r}</button>`).join("")}${missing.length>1?`<button data-add="${i}|all">All</button>`:""}</div></div>`:""}</div>`;
+      <div class="meta"><span>${a.model}</span>${!a.loading && S.version==="new" && missing.length ? `<button data-more="${i}" aria-expanded="${S.openMore===i}">+ Add a ratio</button>`:""}</div>
+      ${S.openMore===i && !a.loading ? `<div class="more"><small>Same image, new ratio. Pick one:</small><div class="opts">${missing.map(r=>`<button data-add="${i}|${r}">${r}</button>`).join("")}${missing.length>1?`<button data-add="${i}|all">All of them</button>`:""}</div></div>`:""}</div>`;
   }).join("");
   box.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.more; S.openMore = S.openMore===i?null:i; step(); renderResults(); });
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{ const [i,r]=b.dataset.add.split("|"); moreFormats(+i, r==="all"?missing:[r]); });
