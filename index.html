@@ -232,7 +232,7 @@ button.ctl:hover{border-color:var(--faint)}
     <button id="modeOld" aria-pressed="false">Current Toolkit</button>
     <button id="modeNew" aria-pressed="true">With Saved Ratios</button>
   </div>
-  <button class="btn small" id="fbOpen">Give feedback</button>
+  <button class="btn small primary" id="fbOpen">Give feedback</button>
   <button class="btn small ghost" id="introOpen" title="How this test works">?</button>
   
 </header>
@@ -685,7 +685,7 @@ function stopTest(done){
   S.test.on=false;
   if(!done){ $("#bigclock").textContent="00:00"; $("#bigsteps").textContent="0 steps"; }
   else $("#bigsteps").textContent=`${S.runs[v].s} steps · pack ready`;
-  renderMission(); render(); const g=$("#guide"); if(g) g.hidden=false;
+  renderMission(); render(); const g=$("#guide"); if(g) g.hidden=false; if(done) maybeAutoFb();
 }
 function renderMission(){
   $("#mission").classList.toggle("live",S.test.on);
@@ -838,15 +838,20 @@ function openFb(){
   $("#fbSum").innerHTML=`Your times, included automatically: current version <b>${r("old")}</b> · Saved Ratios <b>${r("new")}</b>`;
   $("#fbMsg").textContent=""; $("#fb").showModal();
 }
+const bothDone=()=>S.runs.old && S.runs.new;
+// After both rounds: open the feedback form by itself, and again if the tester tries to leave without sending
+function maybeAutoFb(){ if(bothDone() && !S.fbAuto && !S.fbSent){ S.fbAuto=true; setTimeout(()=>{ if(!$("#fb").open) openFb(); },1200); } }
+document.addEventListener("mouseout",e=>{ if(e.relatedTarget||e.clientY>0) return; if(bothDone() && !S.fbSent && !S.fbExit && !$("#fb").open){ S.fbExit=true; openFb(); } });
+addEventListener("beforeunload",e=>{ if(bothDone() && !S.fbSent){ e.preventDefault(); e.returnValue=""; } });
 $("#fbOpen").onclick=openFb; $("#ctaBtn").onclick=openFb; $("#fbClose").onclick=()=>$("#fb").close();
-$("#fbWa").onclick=()=>{ window.open("https://wa.me/?text="+encodeURIComponent(fbText()),"_blank","noopener"); $("#fbMsg").textContent="Pick Manor in WhatsApp and send. Thank you!"; };
+$("#fbWa").onclick=()=>{ S.fbSent=true; window.open("https://wa.me/?text="+encodeURIComponent(fbText()),"_blank","noopener"); $("#fbMsg").textContent="Pick Manor in WhatsApp and send. Thank you!"; };
 const TO="manorbirman@gmail.com", SUBJ="Saved Ratios · feedback";
 $("#fbMail").onclick=()=>{
   const url="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(TO)+"&su="+encodeURIComponent(SUBJ)+"&body="+encodeURIComponent(fbText());
-  window.open(url,"_blank","noopener");
+  S.fbSent=true; window.open(url,"_blank","noopener");
   $("#fbMsg").innerHTML=`A Gmail message opened in a new tab, ready to go. Just press Send. Not using Gmail? <a href="mailto:${TO}?subject=${encodeURIComponent(SUBJ)}&body=${encodeURIComponent(fbText())}" style="color:var(--accent)">Open your email app</a>`;
 };
-$("#fbCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(fbText()); $("#fbMsg").textContent="Copied. Paste it to Manor anywhere."; }catch(e){ $("#fbMsg").textContent="Copy didn't work here. Use WhatsApp or Email."; } };
+$("#fbCopy").onclick=async()=>{ S.fbSent=true; try{ await navigator.clipboard.writeText(fbText()); $("#fbMsg").textContent="Copied. Paste it to Manor anywhere."; }catch(e){ $("#fbMsg").textContent="Copy didn't work here. Use WhatsApp or Email."; } };
 $("#introGo").onclick=()=>{ $("#intro").close(); startTest(S.order[0]); };
 $("#introLater").onclick=()=>$("#intro").close();
 $("#introOpen").onclick=()=>$("#intro").showModal();
