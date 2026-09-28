@@ -291,7 +291,7 @@ button.ctl:hover{border-color:var(--faint)}
         <li>Switch mode to Video and model to Veo 3.1. It can't make 1:1, so you get a choice instead of a silent failure.</li>
         <li>Type "square", "vertical" or both in the prompt. The matching ratios are added for you, with Undo.</li>
         <li>Open Pelephone, then come back. Each client keeps its own draft and style kit.</li>
-        <li>Under any result, press "+ Add a ratio" to get the same image in a ratio you didn't pick, for example 16:9.</li>
+        <li>Approve first, then expand: generate one ratio, and on the image you like press "+ Make all Vitariz ratios" to create the rest of the pack from it. "+ Add a ratio" makes any other single ratio.</li>
       </ol>
     </details>
 
@@ -558,15 +558,16 @@ function renderResults(){
   const box=$("#results"), p=P();
   const list = S.version==="new" ? p.results : (S.old.owner===S.current ? S.old.results||[] : []);
   if(!list.length){ box.innerHTML=`<div class="empty">${S.version==="new" ? `Nothing generated for ${esc(p.name)} yet. One Generate makes every ${esc(p.name)} ratio: ${p.preset.join(" + ")}.` : "Nothing generated yet. One Generate makes one image in one ratio."}</div>`; return; }
-  const have=new Set(list.map(x=>x.ratio)); const missing=RATIOS.filter(r=>!have.has(r));
+  const have=new Set(list.map(x=>x.ratio)); const missing=RATIOS.filter(r=>!have.has(r)); const missPreset=p.preset.filter(r=>!have.has(r));
   box.innerHTML = list.map((a,i)=>{
     const [w,h]=a.ratio.split(":").map(Number); const width = Math.round(220*Math.sqrt(w/h));
     return `<div class="asset" style="--w:${Math.min(width,300)}px">
       <div class="frame ${a.loading?"loading":""}" style="--ar:${w}/${h}">${a.loading?`<span class="tag">Generating ${a.ratio}…</span>`:`<img alt="${esc(p.name)} ${a.ratio}" src="${IMG[a.img][a.ratio]}"><span class="tag">${a.ratio}</span>${a.mode==="video"?`<span class="play" aria-hidden="true">▶</span>`:""}`}</div>
-      <div class="meta"><span>${a.model}</span>${!a.loading && S.version==="new" && missing.length ? `<button data-more="${i}" aria-expanded="${S.openMore===i}">+ Add a ratio</button>`:""}</div>
+      <div class="meta"><span>${a.model}</span>${!a.loading && S.version==="new" && missPreset.length ? `<button data-all="${i}" title="Make ${missPreset.join(" + ")} from this image">+ Make all ${esc(p.name)} ratios</button>`:""}${!a.loading && S.version==="new" && missing.length ? `<button data-more="${i}" aria-expanded="${S.openMore===i}" style="color:var(--muted);font-weight:500">+ Add a ratio</button>`:""}</div>
       ${S.openMore===i && !a.loading ? `<div class="more"><small>Same image, new ratio. Pick one:</small><div class="opts">${missing.map(r=>`<button data-add="${i}|${r}">${r}</button>`).join("")}${missing.length>1?`<button data-add="${i}|all">All of them</button>`:""}</div></div>`:""}</div>`;
   }).join("");
   box.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.more; S.openMore = S.openMore===i?null:i; step(); renderResults(); });
+  box.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>moreFormats(+b.dataset.all, missPreset));
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{ const [i,r]=b.dataset.add.split("|"); moreFormats(+i, r==="all"?missing:[r]); });
 }
 
