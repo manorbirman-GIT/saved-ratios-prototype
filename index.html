@@ -588,7 +588,7 @@ function renderResults(){
     return `<div class="asset" style="--w:${Math.min(width,300)}px">
       <div class="frame ${a.loading?"loading":""}" style="--ar:${w}/${h}">${a.loading?`<span class="tag">Generating ${a.ratio}…</span>`:`<img alt="${esc(p.name)} ${a.ratio}" src="${IMG[a.img][a.ratio]}"><span class="tag">${a.ratio}</span>${a.mode==="video"?`<span class="play" aria-hidden="true">▶</span>`:""}`}</div>
       <div class="meta"><span>${a.model}</span>${!a.loading && S.version==="new" && missPreset.length ? `<button data-all="${i}" title="Make ${missPreset.join(" + ")} from this image">+ Make all ${esc(p.name)} ratios</button>`:""}${!a.loading && S.version==="new" && missing.length ? `<button data-more="${i}" aria-expanded="${S.openMore===i}" style="color:var(--muted);font-weight:500">+ Add a ratio</button>`:""}</div>
-      ${S.openMore===i && !a.loading ? `<div class="more"><small>Same image, new ratio. Pick one:</small><div class="opts">${missing.map(r=>`<button data-add="${i}|${r}">${r}</button>`).join("")}${missing.length>1?`<button data-add="${i}|all">All of them</button>`:""}</div></div>`:""}</div>`;
+      ${S.openMore===i && !a.loading ? `<div class="more"><small>Same image, new ratio. Pick one:</small><div class="opts">${missing.map(r=>{ const mm=MODELS.find(m=>m.name===a.model); const ok=mm&&mm.ratios.includes(r); const alt=ok?null:bestModelFor(r,a.mode||"image"); return ok?`<button data-add="${i}|${r}">${r}</button>`:alt?`<button data-add="${i}|${r}" title="${esc(a.model)} can't make ${r}">${r} · with ${alt.name}</button>`:`<button disabled title="No ${a.mode||"image"} model makes ${r} today">${r} · not possible in ${a.mode||"image"}</button>`; }).join("")}${missing.length>1?`<button data-add="${i}|all">All of them</button>`:""}</div></div>`:""}</div>`;
   }).join("");
   box.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.more; S.openMore = S.openMore===i?null:i; step(); renderResults(); });
   box.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>moreFormats(+b.dataset.all, missPreset));
@@ -597,9 +597,13 @@ function renderResults(){
 
 function moreFormats(i, want){
   const p=P(), a=p.results[i]; S.openMore=null;
-  const add = want.map(r=>{ const mm = MODELS.find(m=>m.name===a.model); const ok = mm && mm.ratios.includes(r); const alt = ok?mm:bestModelFor(r,a.mode); return alt?{ratio:r, model:alt.name, img:p.imgKey, mode:a.mode}:null; }).filter(Boolean);
+  const mm = MODELS.find(m=>m.name===a.model);
+  const add = want.map(r=>{ const ok = mm && mm.ratios.includes(r); const alt = ok?mm:bestModelFor(r,a.mode); return alt?{ratio:r, model:alt.name, img:p.imgKey, mode:a.mode}:null; }).filter(Boolean);
+  const cant = want.filter(r=>!add.some(x=>x.ratio===r));
+  const sw = add.filter(x=>x.model!==a.model);
+  const note = [sw.length?`${a.model} can't make ${sw.map(x=>x.ratio).join(", ")}, so ${sw.length>1?"they're":"it's"} made with ${[...new Set(sw.map(x=>x.model))].join(", ")}`:"", cant.length?`skipping ${cant.join(", ")}: no ${a.mode} model makes ${cant.length>1?"them":"it"}`:""].filter(Boolean).join(" · ");
   if(!add.length) return;
-  step(); startPreflight(add, true);
+  step(); startPreflight(add, true, note);
 }
 
 function renderOldBanner(){
@@ -622,7 +626,7 @@ function switchProject(k){
 
 let pfTimer=null;
 const GEN_MS=4000; // mock generation time, same in both versions (real Nano Banana 2 takes longer)
-function startPreflight(assets, isMore){
+function startPreflight(assets, isMore, note){
   const p=P(), d=D();
   if(S.version==="old"){ runGeneration(assets.map(a=>({...a,img:p.imgKey,mode:d.mode}))); return; }
   if(!assets.length) return;
@@ -631,7 +635,7 @@ function startPreflight(assets, isMore){
   const detail = models.length===1 ? `${assets.map(a=>a.ratio).join(" + ")} on ${models[0]}` : assets.map(a=>`${a.ratio} on ${a.model}`).join(" · ");
   const skipped = isMore ? [] : d.formats.filter(r=>!assets.some(a=>a.ratio===r));
   const area=$("#noticeArea");
-  area.insertAdjacentHTML("afterbegin",`<div class="preflight" id="pf"><div class="sum">Sending <b>${n} ${noun}</b> for ${esc(p.name)} · kit ${esc(d.kit)} · ${detail} · ${d.res}${skipped.length?` · <b>skipping ${skipped.join(", ")}</b>`:""}</div><span class="ring tabnum" id="pfCount">Sending in 5s</span><button class="btn small" id="pfCancel">Cancel</button><button class="btn small primary" id="pfNow">Send now</button><div class="bar2"><i id="pfBar"></i></div></div>`);
+  area.insertAdjacentHTML("afterbegin",`<div class="preflight" id="pf"><div class="sum">Sending <b>${n} ${noun}</b> for ${esc(p.name)} · kit ${esc(d.kit)} · ${detail} · ${d.res}${skipped.length?` · <b>skipping ${skipped.join(", ")}</b>`:""}${note?` · <b>${note}</b>`:""}</div><span class="ring tabnum" id="pfCount">Sending in 5s</span><button class="btn small" id="pfCancel">Cancel</button><button class="btn small primary" id="pfNow">Send now</button><div class="bar2"><i id="pfBar"></i></div></div>`);
   S.popOpen=false; renderChips(); $("#genBtn").disabled=true; $("#pf").scrollIntoView({block:"nearest",behavior:"smooth"});
   let t=0; const total=5000;
   pfTimer=setInterval(()=>{ t+=100; $("#pfBar").style.width=(t/total*100)+"%"; $("#pfCount").textContent=`Sending in ${Math.ceil((total-t)/1000)}s`; if(t>=total) go(); },100);
